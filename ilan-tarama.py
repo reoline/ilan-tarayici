@@ -1,43 +1,47 @@
 import requests
+from bs4 import BeautifulSoup
 
-# Pushcut Webhook URL'in (senin verdiğin doğru URL kullanıldı)
-PUSHCUT_API_URL = "https://api.pushcut.io/YOUR_PUSH_CUT_WEBHOOK"
-
-# Anahtar kelimeler
-ANAHTAR_KELIMELER = ["bolu", "kiralık", "satılık"]
-
-# Kontrol edilecek siteler
-SITELER = {
-    "Bolu Belediyesi İlan Kontrolü": "https://www.bolu.bel.tr/category/kiralamavesatisihaleleri",
-    "OİB İlan Kontrolü": "https://www.oib.gov.tr/ihaleler",
-    "e-İhale İlan Kontrolü": "https://esatis.uyap.gov.tr/main.jsp",
-    "Milli Emlak İlan Kontrolü": "https://www.milliemlak.gov.tr/ihale-ilanlari"
-}
-
-def bildirim_gonder(baslik, mesaj):
+# Bildirim gonderme fonksiyonu
+def pushcut_bildirim(mesaj):
+    url = "https://api.pushcut.io/YOUR_REAL_WEBHOOK_URL_HERE"  # Senin gerçek Pushcut URL'in burada
+    headers = {"Content-Type": "application/json"}
+    data = {"text": mesaj}
     try:
-        response = requests.post(PUSHCUT_API_URL, json={"title": baslik, "text": mesaj})
+        response = requests.post(url, json=data, headers=headers)
         response.raise_for_status()
     except Exception as e:
         print(f"Pushcut bildirimi gönderilemedi: {e}")
 
-def anahtar_kelime_var_mi(html):
-    html_lower = html.lower()
-    return any(anahtar in html_lower for anahtar in ANAHTAR_KELIMELER)
+# Siteleri ve anahtar kelimeleri kontrol etme fonksiyonu
+def siteyi_kontrol_et(site_adi, site_url, anahtar_kelimeler):
+    try:
+        response = requests.get(site_url, timeout=15)
+        response.raise_for_status()
+        html = response.text
+        soup = BeautifulSoup(html, "html.parser")
+        metin = soup.get_text().lower()
 
-def site_kontrol_et():
-    for site_adi, site_url in SITELER.items():
-        try:
-            response = requests.get(site_url, timeout=10)
-            response.raise_for_status()
-            if anahtar_kelime_var_mi(response.text):
-                mesaj = f"{site_adi} sitesinde BOLU için kiralık veya satılık ilan bulundu!"
-            else:
-                mesaj = f"{site_adi} sitesinde BOLU için kiralık veya satılık ilan bulunamadı."
-        except Exception as e:
-            mesaj = f"HATA: {site_url} sitesine ulaşılamadı."
+        if any(kelime in metin for kelime in anahtar_kelimeler):
+            pushcut_bildirim(f"{site_adi} sitesinde BOLU için kiralık veya satılık ilan bulundu!")
+        else:
+            pushcut_bildirim(f"{site_adi} sitesinde Bolu için kiralık veya satılık ilan bulunamadı.")
+    except Exception as e:
+        pushcut_bildirim(f"HATA: {site_url} sitesine ulaşılamadı. {e}")
 
-        bildirim_gonder(site_adi, mesaj)
+# Ana fonksiyon
+def main():
+    anahtar_kelimeler = ["bolu", "kiralık", "satılık"]
+
+    siteler = [
+        ("Bolu Belediyesi", "https://www.bolu.bel.tr/duyurular"),
+        ("OİB", "https://www.oib.gov.tr/ihaleler"),
+        ("e-İhale", "https://www.eihale.gov.tr/"),
+        ("Milli Emlak", "https://www.milliemlak.gov.tr/ihale-ilanlari"),
+        ("TOKİ", "https://www.toki.gov.tr/duyurular")
+    ]
+
+    for site_adi, site_url in siteler:
+        siteyi_kontrol_et(site_adi, site_url, anahtar_kelimeler)
 
 if __name__ == "__main__":
-    site_kontrol_et()
+    main()
