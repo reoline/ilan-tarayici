@@ -2,8 +2,8 @@ name: Ilan Tarama Botu
 
 on:
   schedule:
-    - cron: '0 6,18 * * *'  # Her gün sabah 06:00 ve akşam 18:00'de çalışır
-  workflow_dispatch:  # Manuel çalıştırma izni
+    - cron: '0 6,18 * * *'
+  workflow_dispatch:
 
 jobs:
   run-bot:
