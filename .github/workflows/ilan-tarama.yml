@@ -1,0 +1,25 @@
+name: Ilan Tarama Botu
+
+on:
+  schedule:
+    - cron: '0 6,12 * * *'  # Günde iki kez çalışacak: 06:00 ve 12:00 UTC (Türkiye saatiyle 09:00 ve 15:00 civarı)
+  workflow_dispatch:  # Elle de çalıştırılabilsin diye
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Depoyu Klonla
+        uses: actions/checkout@v3
+
+      - name: Python Kurulumu
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Kütüphaneleri Yükle
+        run: pip install -r requirements.txt
+
+      - name: İlan Tarayıcıyı Çalıştır
+        run: python ilan-tarama.py
