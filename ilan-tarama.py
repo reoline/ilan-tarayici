@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 
 # Bildirim gonderme fonksiyonu
 def pushcut_bildirim(mesaj):
-    url = "https://api.pushcut.io/YOUR_REAL_WEBHOOK_URL_HERE"  # Senin gerçek Pushcut URL'in burada
+    url = "https://api.pushcut.io/CLDonSTvi22mteRYjxTdI/notifications/Milli%20Emlak"  # Senin gerçek Pushcut URL'in burada
     headers = {"Content-Type": "application/json"}
     data = {"text": mesaj}
     try:
