@@ -1,56 +1,28 @@
-import requests
-from bs4 import BeautifulSoup
+name: Ilan Tarama Botu
 
-# Pushcut Webhook URL'in (senin verdiğin URL zaten eklendi)
-PUSHCUT_API_URL = "https://api.pushcut.io/CLDonSTvi22mteRYjxTdI/notifications/Milli%20Emlak"
+on:
+  schedule:
+    - cron: '0 6,18 * * *'
+  workflow_dispatch:
 
-# Anahtar kelimeler
-KEYWORDS = ["bolu", "kiralık", "satılık"]
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
 
-# Kontrol edilecek siteler
-SITES = [
-    ("Milli Emlak", "https://www.milliemlak.gov.tr"),
-    ("e-İhale", "https://www.eihale.gov.tr"),
-    ("OİB", "https://www.oib.gov.tr"),
-    ("Bolu Belediyesi", "https://www.bolu.bel.tr/category/kiralamavesatisihaleleri"),
-    ("İlan Portalı", "https://www.ilan.gov.tr")
-]
+    steps:
+    - name: Kodu indir
+      uses: actions/checkout@v4
 
-def send_pushcut_notification(title, message):
-    data = {
-        "title": title,
-        "text": message
-    }
-    try:
-        response = requests.post(PUSHCUT_API_URL, json=data)
-        response.raise_for_status()
-    except Exception as e:
-        print(f"Pushcut bildirim hatası: {e}")
+    - name: Python 3.x ortamını kur
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
 
-def contains_keywords(text):
-    text = text.lower()
-    return any(keyword in text for keyword in KEYWORDS)
+    - name: Gerekli kütüphaneleri yükle
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
 
-def check_site(name, url):
-    print(f"{name} kontrol ediliyor...")
-    try:
-        response = requests.get(url, timeout=20)
-        response.raise_for_status()
-        page_content = response.text
-
-        if contains_keywords(page_content):
-            send_pushcut_notification(f"{name} İlan Bulundu!", f"{name} sitesinde aradığınız anahtar kelimelerden biri bulundu!")
-            print(f"{name}: İlan bulundu!")
-        else:
-            send_pushcut_notification(f"{name} İlan Kontrolü", f"{name} sitesinde aranan kelimeler bulunamadı.")
-            print(f"{name}: İlan bulunamadı.")
-    except Exception as e:
-        print(f"{name}: Hata oluştu. {e}")
-        send_pushcut_notification(f"{name} - HATA", f"{name} sitesine ulaşılamadı.")
-
-def main():
-    for name, url in SITES:
-        check_site(name, url)
-
-if __name__ == "__main__":
-    main()
+    - name: Python botunu çalıştır
+      run: |
+        python ilan-tarama.py
