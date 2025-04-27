@@ -1,0 +1,26 @@
+name: Ilan Tarama Botu
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"  # Her 6 saatte bir çalışır (isteğe göre değiştiririz)
+  workflow_dispatch:  # Elle çalıştırabilmek için
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Repo Kopyalanıyor
+      uses: actions/checkout@v3
+
+    - name: Python Kuruluyor
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'  # Python sürümü
+
+    - name: Gerekli Paketler Kuruluyor
+      run: |
+        pip install -r requirements.txt
+
+    - name: İlan Taraması Başlatılıyor
+      run: |
+        python ilan-tarama.py
